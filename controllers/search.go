@@ -27,6 +27,7 @@ func (sc searchController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	w.Write(j)
 }
 
+// RegisterSearchController registers the search controller as an http handler
 func RegisterSearchController() {
 	sc := searchController{
 		query: regexp.MustCompile(`^/query/(.+)/?`),
