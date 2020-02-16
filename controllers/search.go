@@ -12,9 +12,17 @@ type searchController struct {
 }
 
 func (sc searchController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	path := req.URL.Path
+	w.Header().Set("Content-Type", "application/json")
 
-	repoResp, err := client.SearchRepos(path[7:])
+	path := req.URL.Path
+	strMatches := sc.query.FindStringSubmatch(path)
+	// fmt.Printf("%q\n", strMatches)
+	if len(strMatches) < 2 {
+		w.Write([]byte("No query provided"))
+		return
+	}
+
+	repoResp, err := client.SearchRepos(strMatches[1])
 	if err != nil {
 		panic(err)
 	}
@@ -23,7 +31,6 @@ func (sc searchController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		panic("Could not serialize object to json")
 	}
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(j)
 }
 
