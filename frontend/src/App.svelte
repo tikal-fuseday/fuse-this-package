@@ -5,11 +5,15 @@
 	let loading = false;
 
 	async function onSearchChange(e) {
-		loading = true;
-		const result = await fetch(`http://localhost:3000/query/${e.detail.value}`, { mode: 'cors' });
-		const body = await result.json();
-		items = body.items;
-		loading = false;
+		if (e.detail.value) {
+			loading = true;
+			const result = await fetch(`http://localhost:3000/query/${e.detail.value}`, { mode: 'cors' });
+			items = await result.json();
+			items = items.sort((a, b) => a.our_score > b.our_score);
+			loading = false;
+		} else {
+			items = [];
+		}
 	}
 </script>
 
