@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"search-package/models"
-	"sync"
 
 	"github.com/groovili/gogtrends"
 )
@@ -20,8 +19,7 @@ const (
 var c *http.Client = &http.Client{}
 
 // SearchRepos retrieves a github repo search response
-func SearchRepos(search string, wg *sync.WaitGroup, result *models.GithubRepoSearchResponse) {
-	defer wg.Done()
+func SearchRepos(search string) (models.GithubRepoSearchResponse, error) {
 	fmt.Println("SearchRepos fetching results for :", search)
 	reposURL := apiURL + "/search/repositories?sort=stars&order=desc&q=" + search + "+language:javascript"
 	repoResp := models.GithubRepoSearchResponse{}
@@ -31,22 +29,19 @@ func SearchRepos(search string, wg *sync.WaitGroup, result *models.GithubRepoSea
 	req.Header.Set("Authorization", "token "+authToken)
 	resp, err := c.Do(req)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return repoResp, err
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	jsonError := json.Unmarshal(body, &repoResp)
 	if jsonError != nil {
-		fmt.Println(jsonError)
-		return
+		return repoResp, jsonError
 	}
-	result = &repoResp
+	return repoResp, nil
 }
 
 // SearchTrends searches google trends
-func SearchTrends(search string, wg *sync.WaitGroup, result *[]*gogtrends.Timeline) {
-	defer wg.Done()
+func SearchTrends(search string) ([]*gogtrends.Timeline, error) {
 	ctx := context.Background()
 	explore, err := gogtrends.Explore(ctx,
 		&gogtrends.ExploreRequest{
@@ -61,11 +56,11 @@ func SearchTrends(search string, wg *sync.WaitGroup, result *[]*gogtrends.Timeli
 			Property: "",
 		}, "EN")
 	if err != nil {
-		return
+		return nil, err
 	}
 	overTime, err := gogtrends.InterestOverTime(ctx, explore[0], "EN")
 	if err != nil {
-		return
+		return nil, err
 	}
-	result = &overTime
+	return overTime, nil
 }
