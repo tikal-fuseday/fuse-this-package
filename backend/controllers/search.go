@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"search-package/client"
 	"search-package/models"
+	"sort"
 
 	"github.com/groovili/gogtrends"
 )
@@ -92,5 +93,9 @@ func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.
 			}
 		}
 	}
+
+	sort.Slice(repos, func(i, j int) bool {
+		return repos[i].OurScore > repos[j].OurScore
+	})
 	return repos, nil
 }
