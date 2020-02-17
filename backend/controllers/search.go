@@ -31,7 +31,7 @@ func (sc searchController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	repoResp, err := client.SearchRepos(strMatches[1])
+	repoResp, err := client.SearchNpmRepos(strMatches[1])
 	if err != nil {
 		panic(err)
 	}
