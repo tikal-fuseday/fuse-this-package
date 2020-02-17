@@ -16,7 +16,7 @@ var c *http.Client = &http.Client{}
 
 // SearchRepos retrieves a github repo search response
 func SearchRepos(search string) (models.RepoResponse, error) {
-	reposURL := apiURL + "/search/repositories?sort=stars&order=desc&q=" + search + "+language:go"
+	reposURL := apiURL + "/search/repositories?sort=stars&order=desc&q=" + search + "+language:javascript"
 	repoResp := models.RepoResponse{}
 
 	req, _ := http.NewRequest("GET", reposURL, nil)

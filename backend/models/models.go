@@ -7,6 +7,7 @@ type RepoItem struct {
 	WatchersCount   int    `json:"watchers_count"`
 	StargazersCount int    `json:"stargazers_count"`
 	URL             string `json:"url"`
+	HTMLURL         string `json:"html_url"`
 }
 
 // RepoResponse represents a Repo search response from github
