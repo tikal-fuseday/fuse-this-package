@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"search-package/models"
@@ -16,6 +17,7 @@ var c *http.Client = &http.Client{}
 
 // SearchRepos retrieves a github repo search response
 func SearchRepos(search string) (models.GithubRepoSearchResponse, error) {
+	fmt.Println("Fetching results for :", search)
 	reposURL := apiURL + "/search/repositories?sort=stars&order=desc&q=" + search + "+language:javascript"
 	repoResp := models.GithubRepoSearchResponse{}
 
