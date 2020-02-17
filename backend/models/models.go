@@ -1,7 +1,7 @@
 package models
 
-// RepoItem represents one Repo from github
-type RepoItem struct {
+// GithubRepo represents one Repo from github
+type GithubRepo struct {
 	Name            string `json:"name"`
 	FullName        string `json:"full_name"`
 	WatchersCount   int    `json:"watchers_count"`
@@ -10,8 +10,8 @@ type RepoItem struct {
 	HTMLURL         string `json:"html_url"`
 }
 
-// RepoResponse represents a Repo search response from github
-type RepoResponse struct {
+// GithubRepoSearchResponse represents a Repo search response from github
+type GithubRepoSearchResponse struct {
 	TotalCount int        `json:"total_count"`
-	Items      []RepoItem `json:"items"`
+	Items      []GithubRepo `json:"items"`
 }
