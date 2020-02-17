@@ -78,7 +78,7 @@ func RegisterSearchController() {
 
 func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.Timeline, npm *models.NpmRepoSearchResponse) ([]models.RepoMergeResult, error) {
 	gh := (*github)
-	repos := make([]models.RepoMergeResult, 0)
+	repos := make(map[string]models.RepoMergeResult)
 
 	for _, repo := range gh.Items {
 		repoURL := repo.HTMLURL
@@ -89,13 +89,19 @@ func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.
 			if npmRepo.Package.Links.Repository == repoURL {
 				score := normalize(float64(repo.StargazersCount), 1000, 1)*.3 + normalize(npmRepo.Score.Detail.Popularity, 1000, 1)*.4 + normalize(npmRepo.Score.Detail.Quality, 1000, 1)*.3
 				m := models.RepoMergeResult{repo, npmRepo.Package.Links.Npm, score}
-				repos = append(repos, m)
+				_, ok := repos[repoURL]
+				if !ok {
+					repos[repoURL] = m
+				}
 			}
 		}
 	}
-
-	sort.Slice(repos, func(i, j int) bool {
-		return repos[i].OurScore > repos[j].OurScore
+	vals := make([]models.RepoMergeResult, 0)
+	for _, v := range repos {
+		vals = append(vals, v)
+	}
+	sort.Slice(vals, func(i, j int) bool {
+		return vals[i].OurScore > vals[j].OurScore
 	})
-	return repos, nil
+	return vals, nil
 }
