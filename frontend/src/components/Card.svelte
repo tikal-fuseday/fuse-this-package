@@ -1,9 +1,13 @@
 <script>
-  export let item;
+  export let item = {};
   let status = 'warning';
 
   function kFormatter(num) {
     return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'k' : Math.sign(num)*Math.abs(num)
+  }
+
+  function gitlink(str) {
+    return str.replace(/(api\.)|(users\/)|(repos\/)/g, '');
   }
 </script>
 
@@ -30,11 +34,16 @@
 
   .card-footer {
     display: flex;
+    justify-content: space-between;
   }
 
   .card-footer div {
-    margin-right: 15px;
     color: rgb(0 0 0 / 0.4);
+  }
+
+  .card-footer div:last-child {
+    width: 50px;
+    text-align: right;
   }
 
   main {
@@ -86,16 +95,16 @@
 
 <section
   class="card-container"
-  class:good="{item.score >= 8}"
-  class:ok="{item.score >= 5 && item.score < 8}"
-  class:bad="{item.score < 5}"
+  class:good="{item.our_score >= 8}"
+  class:ok="{item.our_score >= 5 && item.our_score < 8}"
+  class:bad="{(item.our_score || 0) < 5}"
 >
   <div class="score fa fa-bookmark">
-    <span>{item.score}</span>
+    <span>{(item.our_score || 0).toFixed(1)}</span>
   </div>
   <header class="card-header">
-    <a href={item.url} target="_blank">{item.name}</a> / 
-    <a href={item.owner.url.replace(/(api\.)|(users\/)/g, '')} target="_blank">{item.owner.login}</a>
+    <a href={gitlink(item.url)} target="_blank">{item.name}</a> / 
+    <a href={gitlink(item.owner.url)} target="_blank">{item.owner.login}</a>
   </header>
   <main><div class="description">{item.description}</div></main>
   <footer class="card-footer">
@@ -114,6 +123,11 @@
     <div>
       <span class="fa fa-bug"></span>
       {kFormatter(item.open_issues_count)}
+    </div>
+    <div>
+      {#if item.trend > 1}
+      <span class="fa fa-line-chart"></span>
+      {/if}
     </div>
   </footer>
 </section>
