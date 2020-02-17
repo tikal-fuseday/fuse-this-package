@@ -1,36 +1,47 @@
 <script>
 	import Search from './components/Search.svelte';
-	export let name;
+	import ResultList from './components/ResultList.svelte';
+	let items = [];
+	let loading = false;
 
-	function onSearchChange(value) {
-		console.log(value);
+	async function onSearchChange(e) {
+		loading = true;
+		const result = await fetch(`http://localhost:3000/query/${e.detail.value}`, { mode: 'cors' });
+		const body = await result.json();
+		items = body.items;
+		loading = false;
 	}
 </script>
 
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
-	<Search on:change={onSearchChange} />
+	<section>
+		<h1><div>use</div><div>&nbsp;this&nbsp;</div><div>package</div></h1>
+		<Search on:change={onSearchChange} />
+		{#if loading}
+		<span>Loading...</span>
+		{:else}
+		<ResultList items={items} />
+		{/if}
+	</section>
 </main>
 
 <style>
-	main {
-		text-align: center;
-		padding: 1em;
-		max-width: 240px;
-		margin: 0 auto;
+	section {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		margin-bottom: 50px;
 	}
 
 	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
+		font-size: 60px;
+		display: flex;
 	}
 
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
+	h1 div:not(:first-child):not(:last-child) {
+		transform: rotate(-15deg);
+		background-color: red;
+		color: white;
+		margin: 0 20px;
 	}
 </style>
