@@ -86,7 +86,7 @@ func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.
 		}
 		for _, npmRepo := range npm.Objects {
 			if npmRepo.Package.Links.Repository == repoURL {
-				score := normalize(float64(repo.StargazersCount), 1000, 1)*.3 + normalize(npmRepo.Score.Detail.Popularity, 1000, 1)*.4 + normalize(npmRepo.Score.Detail.Quality, 1000, 1)*.3
+				score := float64(repo.StargazersCount)/1000*.3 + npmRepo.Score.Detail.Popularity*.4 + npmRepo.Score.Detail.Quality*.3
 				m := models.RepoMergeResult{repo, npmRepo.Package.Links.Npm, score}
 				repos = append(repos, m)
 			}
