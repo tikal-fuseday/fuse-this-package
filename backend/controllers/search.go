@@ -8,6 +8,7 @@ import (
 	"search-package/client"
 	"search-package/models"
 	"sort"
+	"sync"
 
 	"github.com/groovili/gogtrends"
 )
@@ -42,27 +43,41 @@ func (sc searchController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	fmt.Println("Searching github for " + queryMatch)
-	repoResp, err := client.SearchGithubRepos(queryMatch)
-	if err != nil {
-		panic(err)
-	}
+	var repoResp models.GithubRepoSearchResponse
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		r, err := client.SearchGithubRepos(queryMatch)
+		if err != nil {
+			panic(err)
+		}
+		repoResp = r
+	}(&wg)
 
-	npmResp, err := client.SearchNpmRepos(queryMatch)
-	if err != nil {
-		panic(err)
-	}
+	var npmResp models.NpmRepoSearchResponse
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		r, err := client.SearchNpmRepos(queryMatch)
+		if err != nil {
+			panic(err)
+		}
+		npmResp = r
+	}(&wg)
 
-	trends, err := client.SearchTrends(queryMatch)
-	if err != nil {
-		panic(err)
-	}
+	var trends []*gogtrends.Timeline
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		r, err := client.SearchTrends(queryMatch)
+		if err != nil {
+			panic(err)
+		}
+		trends = r
+	}(&wg)
+	wg.Wait()
 
-	// j, err := json.Marshal(repoResp)
-	// if err != nil {
-	// 	panic("Could not serialize object to json")
-	// }
-	results, err := mergeResults(&repoResp, &trends, &npmResp)
-	j, err := json.Marshal(results)
+	results, _ := mergeResults(&repoResp, &trends, &npmResp)
+	j, _ := json.Marshal(results)
 	w.Write(j)
 }
 
