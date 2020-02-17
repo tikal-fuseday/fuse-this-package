@@ -86,6 +86,6 @@ func SearchNpmRepos(search string) (models.NpmRepoSearchResponse, error) {
 	if jsonError != nil {
 		return repoResp, jsonError
 	}
-	fmt.Println(repoResp)
+	// fmt.Println(repoResp)
 	return repoResp, nil
 }

@@ -56,11 +56,12 @@ func (sc searchController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	j, err := json.Marshal(repoResp)
-	if err != nil {
-		panic("Could not serialize object to json")
-	}
-	mergeResults(&repoResp, &trends, &npmResp)
+	// j, err := json.Marshal(repoResp)
+	// if err != nil {
+	// 	panic("Could not serialize object to json")
+	// }
+	results, err := mergeResults(&repoResp, &trends, &npmResp)
+	j, err := json.Marshal(results)
 	w.Write(j)
 }
 
@@ -74,6 +75,20 @@ func RegisterSearchController() {
 	http.Handle("/query/", sc)
 }
 
-func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.Timeline, npm *models.NpmRepoSearchResponse) (interface{}, error) {
-	return nil, nil
+func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.Timeline, npm *models.NpmRepoSearchResponse) ([]models.GithubRepo, error) {
+	gh := (*github)
+	repos := make([]models.GithubRepo, 0)
+
+	for _, repo := range gh.Items {
+		repoURL := repo.HTMLURL
+		if repoURL == "" {
+			continue
+		}
+		for _, npmRepo := range npm.Objects {
+			if npmRepo.Package.Links.Repository == repoURL {
+				repos = append(repos, repo)
+			}
+		}
+	}
+	return repos, nil
 }
