@@ -10,6 +10,10 @@ import (
 	"search-package/client"
 )
 
+func normalize(val float32, max float32, min float32) float32 {
+	return (val - min) / (max - min)
+}
+
 type searchController struct {
 	query *regexp.Regexp
 }
