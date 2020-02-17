@@ -11,11 +11,14 @@ type searchController struct {
 	query *regexp.Regexp
 }
 
-func (sc searchController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+func setResponseHeaders(w *http.ResponseWriter) {
+	(*w).Header().Set("Content-Type", "application/json")
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+}
 
+func (sc searchController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	setResponseHeaders(&w)
 	if req.Method == "OPTIONS" {
 		return
 	}
