@@ -1,13 +1,15 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/groovili/gogtrends"
 	"net/http"
 	"regexp"
 	"search-package/client"
+	"search-package/models"
+	"sync"
+
+	"github.com/groovili/gogtrends"
 )
 
 type searchController struct {
@@ -20,16 +22,13 @@ func setResponseHeaders(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 }
 
-type trendsController struct {
-	query *regexp.Regexp
-}
-
 func (sc searchController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	setResponseHeaders(&w)
 	if req.Method == "OPTIONS" {
 		return
 	}
-
+	wg := sync.WaitGroup{}
+	wg.Add(2)
 	path := req.URL.Path
 	strMatches := sc.query.FindStringSubmatch(path)
 	// fmt.Printf("%q\n", strMatches)
@@ -37,57 +36,23 @@ func (sc searchController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte("No query provided"))
 		return
 	}
+	queryMatch := strMatches[1]
+	fmt.Println("Searching github for " + queryMatch)
+	// get github
+	repoResp := &models.GithubRepoSearchResponse{}
+	go client.SearchRepos(queryMatch, &wg, repoResp)
+	// get trends
+	var trends []*gogtrends.Timeline
+	go client.SearchTrends(queryMatch, &wg, &trends)
 
-	fmt.Println("Searching github for " + strMatches[1])
-	repoResp, err := client.SearchRepos(strMatches[1])
-	if err != nil {
-		panic(err)
-	}
+	wg.Wait()
 
 	j, err := json.Marshal(repoResp)
 	if err != nil {
 		panic("Could not serialize object to json")
 	}
-	w.Write(j)
-}
 
-// trends
-func (tc trendsController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	path := req.URL.Path
-	strMatches := tc.query.FindStringSubmatch(path)
-
-	if len(strMatches) < 2 {
-		w.Write([]byte("No trends query provided"))
-		return
-	}
-
-	fmt.Println("Searching trends for " + strMatches[1])
-
-	ctx := context.Background()
-	explore, err := gogtrends.Explore(ctx,
-		&gogtrends.ExploreRequest{
-			ComparisonItems: []*gogtrends.ComparisonItem{
-				{
-					Keyword: strMatches[1],
-					Geo:     "US",
-					Time:    "today+12-m",
-				},
-			},
-			Category: 31, // Programming category
-			Property: "",
-		}, "EN")
-
-	overTime, err := gogtrends.InterestOverTime(ctx, explore[0], "EN")
-	if err != nil {
-		panic(err)
-	}
-
-	j, err := json.Marshal(overTime)
-	if err != nil {
-		panic("Could not serialize")
-	}
+	mergeResults(repoResp, &trends)
 	w.Write(j)
 }
 
@@ -99,12 +64,8 @@ func RegisterSearchController() {
 
 	http.Handle("/query", sc)
 	http.Handle("/query/", sc)
+}
 
-	// Google Trends
-	tc := trendsController{
-		query: regexp.MustCompile(`^/trends/(.+)/?`),
-	}
-	http.Handle("/trends", tc)
-	http.Handle("/trends/", tc)
-
+func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.Timeline) (interface{}, error) {
+	return nil, nil
 }
