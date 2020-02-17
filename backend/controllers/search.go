@@ -11,7 +11,7 @@ import (
 	"github.com/groovili/gogtrends"
 )
 
-func normalize(val float32, max float32, min float32) float32 {
+func normalize(val float64, max float64, min float64) float64 {
 	return (val - min) / (max - min)
 }
 
@@ -75,9 +75,9 @@ func RegisterSearchController() {
 	http.Handle("/query/", sc)
 }
 
-func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.Timeline, npm *models.NpmRepoSearchResponse) ([]models.GithubRepo, error) {
+func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.Timeline, npm *models.NpmRepoSearchResponse) ([]models.RepoMergeResult, error) {
 	gh := (*github)
-	repos := make([]models.GithubRepo, 0)
+	repos := make([]models.RepoMergeResult, 0)
 
 	for _, repo := range gh.Items {
 		repoURL := repo.HTMLURL
@@ -86,7 +86,9 @@ func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.
 		}
 		for _, npmRepo := range npm.Objects {
 			if npmRepo.Package.Links.Repository == repoURL {
-				repos = append(repos, repo)
+				score := normalize(float64(repo.StargazersCount)*.3, 10, 1) + normalize(npmRepo.Score.Detail.Popularity*.4, 10, 1) + normalize(npmRepo.Score.Detail.Quality*.3, 10, 1)
+				m := models.RepoMergeResult{repo, npmRepo.Package.Links.Npm, score}
+				repos = append(repos, m)
 			}
 		}
 	}

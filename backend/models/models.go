@@ -121,3 +121,9 @@ type NPMFilter struct {
 	Maintenance float64
 	Popularity  float64
 }
+
+type RepoMergeResult struct {
+	GithubRepo
+	NpmURL   string  `json:"npm_url"`
+	OurScore float64 `json:"our_score"`
+}
