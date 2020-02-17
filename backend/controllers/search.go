@@ -41,22 +41,26 @@ func (sc searchController) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	fmt.Println("Searching github for " + queryMatch)
-	repoResp, err := client.SearchRepos(queryMatch)
+	repoResp, err := client.SearchGithubRepos(queryMatch)
 	if err != nil {
 		panic(err)
 	}
-	
+
+	npmResp, err := client.SearchNpmRepos(queryMatch)
+	if err != nil {
+		panic(err)
+	}
+
 	trends, err := client.SearchTrends(queryMatch)
 	if err != nil {
 		panic(err)
 	}
 
-	
 	j, err := json.Marshal(repoResp)
 	if err != nil {
 		panic("Could not serialize object to json")
 	}
-	mergeResults(&repoResp, &trends)
+	mergeResults(&repoResp, &trends, &npmResp)
 	w.Write(j)
 }
 
@@ -70,6 +74,6 @@ func RegisterSearchController() {
 	http.Handle("/query/", sc)
 }
 
-func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.Timeline) (interface{}, error) {
+func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.Timeline, npm *models.NpmRepoSearchResponse) (interface{}, error) {
 	return nil, nil
 }
