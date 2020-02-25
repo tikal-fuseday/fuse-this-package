@@ -111,9 +111,11 @@ func mergeResults(github *models.GithubRepoSearchResponse, trends *[]*gogtrends.
 			}
 		}
 	}
-	vals := make([]models.RepoMergeResult, 0)
+	vals := make([]models.RepoMergeResult, len(repos))
+	i := 0
 	for _, v := range repos {
-		vals = append(vals, v)
+		vals[i] = v
+		i++
 	}
 	sort.Slice(vals, func(i, j int) bool {
 		return vals[i].OurScore > vals[j].OurScore
